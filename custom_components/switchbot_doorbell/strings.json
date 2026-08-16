@@ -31,17 +31,6 @@
       "already_configured": "Dieses Geraet ist bereits konfiguriert."
     }
   },
-  "entity": {
-    "sensor": {
-      "battery": { "name": "Batterie" }
-    },
-    "switch": {
-      "mute": { "name": "Stummschaltung" }
-    },
-    "binary_sensor": {
-      "ring": { "name": "Klingel" }
-    }
-  },
   "services": {
     "mute_for": {
       "name": "Fuer X Minuten muten",

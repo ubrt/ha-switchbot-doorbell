@@ -5,7 +5,7 @@ wieder auf 'off' (Impuls-Verhalten, wie bei anderen Klingel-Integrationen ueblic
 """
 from __future__ import annotations
 
-from homeassistant.components.binary_sensor import BinarySensorDeviceClass, BinarySensorEntity
+from homeassistant.components.binary_sensor import BinarySensorEntity
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant, callback
 from homeassistant.helpers.entity import DeviceInfo
@@ -27,8 +27,12 @@ async def async_setup_entry(
 
 class SwitchBotRingBinarySensor(BinarySensorEntity):
     _attr_has_entity_name = True
-    _attr_translation_key = "ring"
-    _attr_device_class = BinarySensorDeviceClass.OCCUPANCY
+    # Kein _attr_translation_key (siehe switch.py) und bewusst kein
+    # BinarySensorDeviceClass - "occupancy" o.ae. passt semantisch nicht zu
+    # einem einmaligen Klingel-Impuls, und ein falscher device_class fuehrt
+    # sonst zu einem irrefuehrenden Fallback-Namen wie "Belegung".
+    _attr_name = "Ring"
+    _attr_icon = "mdi:bell-ring"
     _attr_should_poll = False
 
     def __init__(self, entry: ConfigEntry) -> None:

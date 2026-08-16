@@ -21,11 +21,13 @@ async def async_setup_entry(
 
 
 class SwitchBotBatterySensor(CoordinatorEntity[SwitchBotDoorbellCoordinator], SensorEntity):
+    # Kein _attr_translation_key (siehe switch.py) - der Name kommt hier ueber
+    # den device_class-Standardnamen ("Battery"/"Batterie"), nicht ueber
+    # strings.json.
     _attr_device_class = SensorDeviceClass.BATTERY
     _attr_native_unit_of_measurement = PERCENTAGE
     _attr_entity_category = EntityCategory.DIAGNOSTIC
     _attr_has_entity_name = True
-    _attr_translation_key = "battery"
 
     def __init__(self, coordinator: SwitchBotDoorbellCoordinator, entry: ConfigEntry) -> None:
         super().__init__(coordinator)

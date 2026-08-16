@@ -84,5 +84,6 @@ class SwitchBotDoorbellCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         mute_until = (shadow.get(str(PROP_MUTE)) or {}).get("value")
         return {
             "battery": battery,
-            "mute_until_ms": mute_until,
+            # Unix-Sekunden, nicht Millisekunden - siehe compute_mute_until() in api.py.
+            "mute_until_s": mute_until,
         }

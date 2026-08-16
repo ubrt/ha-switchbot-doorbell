@@ -190,6 +190,14 @@ class SwitchBotApiClient:
         raise SwitchBotApiError(f"Unerwartetes policyCer-Antwortformat: {result!r}")
 
 
-def compute_mute_until_ms(minutes: int) -> int:
-    """Unix-Millisekunden-Zeitstempel, bis zu dem gemutet werden soll."""
-    return int(time.time() * 1000) + minutes * 60 * 1000
+def compute_mute_until(minutes: int) -> int:
+    """Unix-Sekunden-Zeitstempel, bis zu dem gemutet werden soll.
+
+    Live verifiziert (2026-08-16): ein Millisekunden-Wert (wie bei allen
+    anderen Zeitstempeln dieser API sonst ueblich) ueberschreitet den
+    32-Bit-Wertebereich, den die Property-8433-Firmware offenbar erwartet -
+    der Server/das Geraet kappt den Wert dann stillschweigend auf 2147483647
+    (2^31-1, weit in der Vergangenheit relativ zu "jetzt"), wodurch der Mute
+    nie aktiv wird. Property 8433 will also Sekunden, nicht Millisekunden.
+    """
+    return int(time.time()) + minutes * 60
