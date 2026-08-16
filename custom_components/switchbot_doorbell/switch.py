@@ -1,4 +1,11 @@
-"""Mute-Switch fuer die SwitchBot Video Doorbell (mute-fuer-n-Zeit)."""
+"""Mute-Switch fuer die SwitchBot Video Doorbell (mute-fuer-n-Zeit).
+
+Die Doorbell braucht ein paar Sekunden, bis ein per func/invoke geschriebener
+Wert im Shadow (shadow/getByIDs) auftaucht - der sofortige Refresh nach dem
+Schreiben liest sonst noch den alten Wert und der Switch springt in der UI
+kurz zurueck. Deshalb: optimistischer lokaler Zustand mit Gnadenfrist, der erst
+weicht, wenn der Server den erwarteten Wert bestaetigt oder die Frist ablaeuft.
+"""
 from __future__ import annotations
 
 import time
@@ -6,7 +13,7 @@ import time
 import voluptuous as vol
 from homeassistant.components.switch import SwitchEntity
 from homeassistant.config_entries import ConfigEntry
-from homeassistant.core import HomeAssistant
+from homeassistant.core import HomeAssistant, callback
 from homeassistant.helpers import entity_platform
 from homeassistant.helpers.entity import DeviceInfo
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
@@ -23,6 +30,8 @@ from .const import (
     SERVICE_MUTE_FOR,
 )
 from .coordinator import SwitchBotDoorbellCoordinator
+
+OPTIMISTIC_GRACE_SECONDS = 15
 
 
 async def async_setup_entry(
@@ -54,24 +63,42 @@ class SwitchBotMuteSwitch(CoordinatorEntity[SwitchBotDoorbellCoordinator], Switc
             manufacturer="SwitchBot",
             model="Video Doorbell",
         )
+        self._optimistic_mute_until: int | None = None
+        self._optimistic_set_at: float = 0.0
 
     @property
     def is_on(self) -> bool:
-        if not self.coordinator.data:
-            return False
-        mute_until = self.coordinator.data.get("mute_until_ms") or 0
-        return mute_until > int(time.time() * 1000)
+        now_ms = int(time.time() * 1000)
+        if self._optimistic_mute_until is not None:
+            return self._optimistic_mute_until > now_ms
+        mute_until = (self.coordinator.data or {}).get("mute_until_ms") or 0
+        return mute_until > now_ms
 
     @property
     def extra_state_attributes(self) -> dict:
         mute_until = (self.coordinator.data or {}).get("mute_until_ms")
         return {"mute_until_ms": mute_until}
 
+    @callback
+    def _handle_coordinator_update(self) -> None:
+        if self._optimistic_mute_until is not None:
+            server_value = (self.coordinator.data or {}).get("mute_until_ms")
+            grace_elapsed = (time.monotonic() - self._optimistic_set_at) > OPTIMISTIC_GRACE_SECONDS
+            if server_value == self._optimistic_mute_until or grace_elapsed:
+                self._optimistic_mute_until = None
+        super()._handle_coordinator_update()
+
     async def async_turn_on(self, **kwargs) -> None:
         await self.mute_for(DEFAULT_MUTE_MINUTES)
 
     async def async_turn_off(self, **kwargs) -> None:
-        await self.coordinator.async_invoke(PROP_MUTE, 0)
+        await self._set_mute_until(0)
 
     async def mute_for(self, minutes: int) -> None:
-        await self.coordinator.async_invoke(PROP_MUTE, compute_mute_until_ms(minutes))
+        await self._set_mute_until(compute_mute_until_ms(minutes))
+
+    async def _set_mute_until(self, value: int) -> None:
+        self._optimistic_mute_until = value
+        self._optimistic_set_at = time.monotonic()
+        self.async_write_ha_state()
+        await self.coordinator.async_invoke(PROP_MUTE, value)
