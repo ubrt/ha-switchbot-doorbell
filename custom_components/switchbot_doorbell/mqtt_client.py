@@ -96,7 +96,13 @@ class SwitchBotMqttClient:
         assert self._cert_file is not None and self._key_file is not None
 
         client_id = f"ha-switchbot-doorbell-{id(self)}"
-        client = mqtt.Client(client_id=client_id, protocol=mqtt.MQTTv311)
+        # VERSION1 behaelt die "alten" Callback-Signaturen (client, userdata, flags, rc)
+        # bei - paho-mqtt >=2.0 aendert sonst die Signatur (reason_code/properties statt rc).
+        client = mqtt.Client(
+            callback_api_version=mqtt.CallbackAPIVersion.VERSION1,
+            client_id=client_id,
+            protocol=mqtt.MQTTv311,
+        )
         client.tls_set(
             certfile=str(self._cert_file),
             keyfile=str(self._key_file),
