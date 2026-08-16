@@ -1,0 +1,54 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "SwitchBot Login",
+        "data": {
+          "email": "E-Mail",
+          "password": "Passwort"
+        }
+      },
+      "group": {
+        "title": "Home/Gruppe waehlen",
+        "data": {
+          "group_id": "Gruppe"
+        }
+      },
+      "device": {
+        "title": "Doorbell waehlen",
+        "data": {
+          "device_id": "Geraet"
+        }
+      }
+    },
+    "error": {
+      "invalid_auth": "E-Mail oder Passwort falsch (oder Captcha erforderlich).",
+      "cannot_connect": "Verbindung zur SwitchBot-Cloud fehlgeschlagen.",
+      "no_groups": "Keine Gruppen/Homes im Account gefunden.",
+      "no_doorbell_found": "Keine Video Doorbell in dieser Gruppe gefunden."
+    },
+    "abort": {
+      "already_configured": "Dieses Geraet ist bereits konfiguriert."
+    }
+  },
+  "entity": {
+    "sensor": {
+      "battery": { "name": "Batterie" }
+    },
+    "switch": {
+      "mute": { "name": "Stummschaltung" }
+    },
+    "binary_sensor": {
+      "ring": { "name": "Klingel" }
+    }
+  },
+  "services": {
+    "mute_for": {
+      "name": "Fuer X Minuten muten",
+      "description": "Mutet die Video Doorbell fuer die angegebene Anzahl an Minuten.",
+      "fields": {
+        "minutes": { "name": "Minuten", "description": "Wie viele Minuten gemutet werden soll." }
+      }
+    }
+  }
+}

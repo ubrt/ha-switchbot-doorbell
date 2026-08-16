@@ -1,0 +1,18 @@
+mute_for:
+  name: Mute for
+  description: Mutet die Video Doorbell fuer die angegebene Anzahl an Minuten.
+  target:
+    entity:
+      domain: switch
+      integration: switchbot_doorbell
+  fields:
+    minutes:
+      name: Minuten
+      description: Wie viele Minuten gemutet werden soll.
+      required: true
+      example: 30
+      selector:
+        number:
+          min: 1
+          max: 1440
+          unit_of_measurement: min
