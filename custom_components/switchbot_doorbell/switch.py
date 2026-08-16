@@ -32,6 +32,7 @@ from .const import (
     CONF_DEVICE_NAME,
     DEFAULT_MUTE_MINUTES,
     DOMAIN,
+    MAX_MUTE_MINUTES,
     PROP_MUTE,
     SERVICE_MUTE_FOR,
 )
@@ -49,7 +50,7 @@ async def async_setup_entry(
     platform = entity_platform.async_get_current_platform()
     platform.async_register_entity_service(
         SERVICE_MUTE_FOR,
-        {vol.Required(ATTR_MINUTES): vol.All(vol.Coerce(int), vol.Range(min=1))},
+        {vol.Required(ATTR_MINUTES): vol.All(vol.Coerce(int), vol.Range(min=1, max=MAX_MUTE_MINUTES))},
         "mute_for",
     )
 
